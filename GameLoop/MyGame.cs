@@ -6,17 +6,44 @@ namespace GameLoop
     public class MyGame
     {
 
-        DateTime prevTime;
-
-        // Create a list of events that exist
-        // Create a list of events that fired (to have the render handle).
+        private DateTime prevTime;
+        private string currentInput;
         
+
+        private List<Event> events;
+        private List<Event> eventsFired;
+
+        /// <summary>
+        /// Internal object for events
+        /// </summary>
+        private class Event
+        {
+            public TimeSpan interval;
+            public TimeSpan timeToInterval;
+            public string name;
+            public int times;
+
+            public Event(TimeSpan interval, string name, int times) 
+            { 
+                this.interval = interval;
+                this.name = name;
+                this.times = times;
+                this.timeToInterval = interval;
+            }
+
+
+        }
+
+
+
         /// <summary>
         /// Do any game initialization right here
         /// </summary>
         public void initialize()
         {
             prevTime = DateTime.Now;
+            events = new List<Event>();
+            eventsFired = new List<Event>();    
         }
 
         /// <summary>
@@ -39,6 +66,23 @@ namespace GameLoop
 
         private void processInput()
         {
+            if (Console.KeyAvailable) 
+            { 
+                var key = Console.ReadKey();
+                currentInput += key;
+
+                if (key.KeyChar.ToString() == " ")
+                {
+                    events.Add(new Event(TimeSpan.FromMilliseconds(1000),"Yeah",10));
+                }
+
+            }
+            
+                /*while (Console.KeyAvailable)
+                {
+                    
+                }*/
+            
         }
 
         /// <summary>
@@ -46,13 +90,42 @@ namespace GameLoop
         /// </summary>
         protected void update(TimeSpan elapsedTime)
         {
+
+            for(int i = 0; i < events.Count; i++) 
+            {
+                events[i].timeToInterval -= elapsedTime;
+
+                if (events[i].timeToInterval <= TimeSpan.Zero)
+                {
+                    events[i].timeToInterval = events[i].interval;
+                    events[i].times -= 1;
+                    eventsFired.Add(events[i]);
+
+                    if (events[i].times <= 0)
+                    {
+                        events.RemoveAt(i);
+                        i--;
+                    }
+
+
+                }
+            }
         }
 
         /// <summary>
         /// "Render" the state of the simulation
-        /// </summary>
+        /// </summary>  
         protected void render()
         {
+            for (int i = 0; i < eventsFired.Count; i++)
+            {
+                Console.Write(eventsFired[i].name + eventsFired[i].times);
+                eventsFired.RemoveAt(i);
+                i--;
+            }
+            
+            
+
         }
 
         /// <summary>
@@ -62,6 +135,8 @@ namespace GameLoop
         {
             return false;
         }
+
+        
 
     }
 }
