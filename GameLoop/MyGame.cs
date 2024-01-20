@@ -5,11 +5,18 @@ namespace GameLoop
 {
     public class MyGame
     {
+
+        DateTime prevTime;
+
+        // Create a list of events that exist
+        // Create a list of events that fired (to have the render handle).
+        
         /// <summary>
         /// Do any game initialization right here
         /// </summary>
         public void initialize()
         {
+            prevTime = DateTime.Now;
         }
 
         /// <summary>
@@ -17,6 +24,17 @@ namespace GameLoop
         /// </summary>
         public void run()
         {
+            bool done = false;
+            while (!done)
+            { 
+                TimeSpan elapsedTime = DateTime.Now - prevTime;
+
+                prevTime = DateTime.Now;
+
+                this.processInput();
+                this.update(elapsedTime);
+                this.render();
+            }
         }
 
         private void processInput()
