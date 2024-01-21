@@ -43,7 +43,9 @@ namespace GameLoop
         {
             prevTime = DateTime.Now;
             events = new List<Event>();
-            eventsFired = new List<Event>();    
+            eventsFired = new List<Event>();
+            Console.Write("[cmd:] ");
+
         }
 
         /// <summary>
@@ -52,6 +54,7 @@ namespace GameLoop
         public void run()
         {
             bool done = false;
+
             while (!done)
             { 
                 TimeSpan elapsedTime = DateTime.Now - prevTime;
@@ -117,14 +120,24 @@ namespace GameLoop
         /// </summary>  
         protected void render()
         {
-            for (int i = 0; i < eventsFired.Count; i++)
+            int firedEvents = 0;
+            if (eventsFired.Count > 0)
             {
-                Console.Write(eventsFired[i].name + eventsFired[i].times);
-                eventsFired.RemoveAt(i);
-                i--;
+                Console.WriteLine();
+                for (int i = 0; i < eventsFired.Count; i++)
+                {
+                    firedEvents++;
+                    Console.WriteLine(eventsFired[i].name + eventsFired[i].times);
+                }
             }
-            
-            
+            if (firedEvents > 0) 
+            {
+                eventsFired.Clear();
+                // Reprint the command line
+                Console.Write("[cmd:] ");
+            }
+
+
 
         }
 
