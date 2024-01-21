@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security;
 
 namespace GameLoop
 {
@@ -7,11 +8,11 @@ namespace GameLoop
     {
 
         private DateTime prevTime;
-        private string currentInput;
         
 
         private List<Event> events;
         private List<Event> eventsFired;
+        private List<string> currentInput;
 
         /// <summary>
         /// Internal object for events
@@ -44,6 +45,7 @@ namespace GameLoop
             prevTime = DateTime.Now;
             events = new List<Event>();
             eventsFired = new List<Event>();
+            currentInput = new List<string>();
             Console.Write("[cmd:] ");
 
         }
@@ -72,11 +74,27 @@ namespace GameLoop
             if (Console.KeyAvailable) 
             { 
                 var key = Console.ReadKey();
-                currentInput += key;
 
                 if (key.KeyChar.ToString() == " ")
                 {
+                    currentInput.Add("");
                     events.Add(new Event(TimeSpan.FromMilliseconds(1000),"Yeah",10));
+                }
+                else if (key.Key == ConsoleKey.Backspace) 
+                {
+                    if (currentInput[currentInput.Count - 1].Length == 0) 
+                    { 
+                        // Remove the spot in the list
+                        currentInput.RemoveAt(currentInput.Count - 1);
+                    }
+                }
+                else
+                {
+                    if (currentInput.Count == 0)
+                    {
+                        currentInput.Add("");
+                    }
+                    currentInput[currentInput.Count - 1] += key.Key.ToString();
                 }
 
             }
@@ -135,6 +153,14 @@ namespace GameLoop
                 eventsFired.Clear();
                 // Reprint the command line
                 Console.Write("[cmd:] ");
+
+                for (int i = 0;i < currentInput.Count; i++)
+                {
+                    Console.Write(currentInput[i]);
+                    Console.Write(" ");
+                    
+                }
+                //Console.Write();
             }
 
 
