@@ -100,6 +100,8 @@ namespace GameLoop
                 }
                 else if (key.Key == ConsoleKey.Enter)
                 {
+                    this.enterPressed = true;
+
                     string[] input = tempInput.Split(" ");
 
                     if (input.Length >= 5)
