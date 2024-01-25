@@ -86,12 +86,13 @@ namespace GameLoop
                 if (key.Key == ConsoleKey.Backspace)
                 {
                     //tempInput = tempInput.Trim();
-                    if (tempInput.Length > 0)
+                    if (this.tempInput.Length > 0)
                     {
-                        tempInput = tempInput.Remove(tempInput.Length - 1);
+                        this.tempInput = this.tempInput.Remove(this.tempInput.Length - 1);
                         this.keyPressed = true;
                         this.consoleKey = key;
                     }
+                    // TODO: Move this to the render method
                     else
                     {
                         Console.Write(" ");
@@ -102,7 +103,7 @@ namespace GameLoop
                 {
                     this.enterPressed = true;
 
-                    string[] input = tempInput.Split(" ");
+                    string[] input = this.tempInput.Split(" ");
 
                     if (input.Length >= 5)
                     {
@@ -126,12 +127,12 @@ namespace GameLoop
                         }
 
                     }
-                    tempInput = "";
+                    this.tempInput = "";
                     // Do some stuff here
                 }
                 else
                 {
-                    tempInput += key.KeyChar.ToString();
+                    this.tempInput += key.KeyChar.ToString();
 
                 }
             }
@@ -279,7 +280,7 @@ namespace GameLoop
                     }
 
                 }*/
-                Console.Write(tempInput);
+                Console.Write(this.tempInput);
                 //Console.Write();
             }
 
