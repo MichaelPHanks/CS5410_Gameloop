@@ -8,7 +8,12 @@ namespace GameLoop
     {
 
         private DateTime prevTime;
-        
+        private ConsoleKeyInfo consoleKey;
+        private bool keyPressed = false;
+        private bool enterPressed = false;
+        private string tempInput = string.Empty;
+
+        private bool gameRunning = true;
 
         private List<Event> events;
         private List<Event> eventsFired;
@@ -42,10 +47,10 @@ namespace GameLoop
         /// </summary>
         public void initialize()
         {
-            prevTime = DateTime.Now;
-            events = new List<Event>();
-            eventsFired = new List<Event>();
-            currentInput = new List<string>();
+            this.prevTime = DateTime.Now;
+            this.events = new List<Event>();
+            this.eventsFired = new List<Event>();
+            this.currentInput = new List<string>();
             Console.WriteLine("GameLoop Demo Initializing...");
 
             // TODO: Move this to render
@@ -58,13 +63,12 @@ namespace GameLoop
         /// </summary>
         public void run()
         {
-            bool done = false;
 
-            while (!done)
+            while (gameRunning)
             { 
                 TimeSpan elapsedTime = DateTime.Now - prevTime;
 
-                prevTime = DateTime.Now;
+                this.prevTime = DateTime.Now;
 
                 this.processInput();
                 this.update(elapsedTime);
@@ -74,71 +78,145 @@ namespace GameLoop
 
         private void processInput()
         {
-            if (Console.KeyAvailable) 
+            if (Console.KeyAvailable)
+            {
+                var key = Console.ReadKey();
+
+
+                if (key.Key == ConsoleKey.Backspace)
+                {
+                    //tempInput = tempInput.Trim();
+                    if (tempInput.Length > 0)
+                    {
+                        tempInput = tempInput.Remove(tempInput.Length - 1);
+                        this.keyPressed = true;
+                        this.consoleKey = key;
+                    }
+                    else
+                    {
+                        Console.Write(" ");
+                    }
+
+                }
+                else if (key.Key == ConsoleKey.Enter)
+                {
+                    string[] input = tempInput.Split(" ");
+
+                    if (input.Length >= 5)
+                    {
+                        if (input[0].ToLower() == "create" && input[1].ToLower() == "event")
+                        {
+                            try
+                            {
+                                string name = input[2];
+
+                                double timeSpan = double.Parse(input[3]);
+
+                                int times = int.Parse(input[4]);
+
+                                TimeSpan interval = TimeSpan.FromMilliseconds(timeSpan);
+
+                                this.events.Add(new Event(interval, name, times));
+                            }
+
+                            catch { }
+
+                        }
+
+                    }
+                    tempInput = "";
+                    // Do some stuff here
+                }
+                else
+                {
+                    tempInput += key.KeyChar.ToString();
+
+                }
+            }
+
+            /*if (Console.KeyAvailable) 
             { 
                 var key = Console.ReadKey();
 
                 if (key.KeyChar.ToString() == " ")
                 {
-                    currentInput.Add("");
+                    this.currentInput.Add("");
                 }
                 else if (key.Key == ConsoleKey.Backspace)
                 {
-                    if (currentInput.Count > 0)
+                    if (this.currentInput.Count > 0)
                     {
-                        if (currentInput[currentInput.Count - 1].Length == 0)
+                        if (this.currentInput[this.currentInput.Count - 1].Length == 0)
                         {
                             // Remove the spot in the list
-                            currentInput.RemoveAt(currentInput.Count - 1);
+                            this.currentInput.RemoveAt(this.currentInput.Count - 1);
                         }
-                        else if (currentInput[currentInput.Count - 1].Length > 0)
+                        else if (this.currentInput[this.currentInput.Count - 1].Length > 0)
                         {
-                            string tempInput = currentInput[currentInput.Count - 1];
+                            string tempInput = this.currentInput[this.currentInput.Count - 1];
 
                             tempInput = tempInput.Remove(tempInput.Length - 1);
 
-                            currentInput[currentInput.Count - 1] = tempInput;
+                            this.currentInput[this.currentInput.Count - 1] = tempInput;
+
+                            if (tempInput == "")
+                            {
+                                this.currentInput.RemoveAt(this.currentInput.Count - 1);
+                                //Console.Write(" ");
+
+                            }
+
 
                         }
 
-                        // Possibly need to move this to the render method
-                        Console.Write(" ");
-                        Console.Write(key.KeyChar.ToString());  
+                        this.consoleKey = key;
+                        this.keyPressed = true;
+
                     }
+                    else
+                    {
+                        Console.Write(" ");
+                    }
+                    Console.Write("");
                     
                 }
                 else if (key.Key == ConsoleKey.Enter)
                 {
-                    if (currentInput.Count >= 5) 
+                    this.enterPressed = true;
+                    if (this.currentInput.Count >= 5) 
                     {
-                        if (currentInput[0].ToLower() == "create" && currentInput[1].ToLower() == "event")
+                        if (this.currentInput[0].ToLower() == "create" && this.currentInput[1].ToLower() == "event")
                         {
                             try {
-                                string name = currentInput[2];
-                                double timeSpan = double.Parse(currentInput[3]);
-                                int times = int.Parse(currentInput[4]);
+                                string name = this.currentInput[2];
+
+                                double timeSpan = double.Parse(this.currentInput[3]);
+
+                                int times = int.Parse(this.currentInput[4]);
+
                                 TimeSpan interval = TimeSpan.FromMilliseconds(timeSpan);
-                                events.Add(new Event(interval, name, times));
+
+                                this.events.Add(new Event(interval, name, times));
                             } 
                             
                             catch { }
                         }
                     }
-                    currentInput.Clear();
+                    this.currentInput.Clear();
                 }
                 else
                 {
-                    if (currentInput.Count == 0)
+                    if (this.currentInput.Count == 0)
                     {
-                        currentInput.Add("");
+                        this.currentInput.Add("");
                     }
-                    currentInput[currentInput.Count - 1] += key.KeyChar.ToString();
+                    this.currentInput[this.currentInput.Count - 1] += key.KeyChar.ToString();
                 }
 
-            }
-            
-                
-            
+            }*/
+
+
+
         }
 
         /// <summary>
@@ -147,19 +225,19 @@ namespace GameLoop
         protected void update(TimeSpan elapsedTime)
         {
 
-            for(int i = 0; i < events.Count; i++) 
+            for(int i = 0; i < this.events.Count; i++) 
             {
-                events[i].timeToInterval -= elapsedTime;
+                this.events[i].timeToInterval -= elapsedTime;
 
-                if (events[i].timeToInterval <= TimeSpan.Zero)
+                if (this.events[i].timeToInterval <= TimeSpan.Zero)
                 {
-                    events[i].timeToInterval = events[i].interval;
-                    events[i].times -= 1;
-                    eventsFired.Add(events[i]);
+                    this.events[i].timeToInterval = this.events[i].interval;
+                    this.events[i].times -= 1;
+                    eventsFired.Add(this.events[i]);
 
-                    if (events[i].times <= 0)
+                    if (this.events[i].times <= 0)
                     {
-                        events.RemoveAt(i);
+                        this.events.RemoveAt(i);
                         i--;
                     }
 
@@ -174,34 +252,47 @@ namespace GameLoop
         protected void render()
         {
             int firedEvents = 0;
-            if (eventsFired.Count > 0)
+            if (this.eventsFired.Count > 0)
             {
                 Console.WriteLine();
-                for (int i = 0; i < eventsFired.Count; i++)
+                for (int i = 0; i < this.eventsFired.Count; i++)
                 {
                     firedEvents++;
-                    Console.WriteLine("\tEvent: "+eventsFired[i].name + "("+ eventsFired[i].times + "remaining)");
+                    Console.WriteLine("\tEvent: "+ this.eventsFired[i].name + "("+ this.eventsFired[i].times + "remaining)");
                 }
             }
             if (firedEvents > 0) 
             {
-                eventsFired.Clear();
+                this.eventsFired.Clear();
                 // Reprint the command line
                 Console.Write("[cmd:] ");
 
-                for (int i = 0;i < currentInput.Count; i++)
+                /*for (int i = 0;i < this.currentInput.Count; i++)
                 {
-                    Console.Write(currentInput[i]);
-                    if (i != currentInput.Count - 1)
+                    Console.Write(this.currentInput[i]);
+                    if (i != this.currentInput.Count - 1)
                     {
                         Console.Write(" ");
 
                     }
 
-                }
+                }*/
+                Console.Write(tempInput);
                 //Console.Write();
             }
 
+            if (this.keyPressed) 
+            {
+                Console.Write(" ");
+                Console.Write(consoleKey.KeyChar.ToString());
+                this.keyPressed = false;
+            }
+            if (this.enterPressed)
+            {
+                this.enterPressed = false;
+                Console.WriteLine() ;
+                Console.Write("[cmd:] ");
+            }
 
 
         }
