@@ -7,15 +7,33 @@ namespace GameLoop
     public class MyGame
     {
         // Game data, including Event class
+
+        // Holds info for previous game time
         private DateTime prevTime;
+
+        // These two are for backspace, need to know whether to render a space or not
         private ConsoleKeyInfo consoleKey;
         private bool keyPressed = false;
+
+        // If the enter is pressed, we display a new line
         private bool enterPressed = false;
+
+        // Holds the current prompt that the user defines
         private string tempInput = string.Empty;
+
+        // Holds the game loop in its loop until we quit
         private bool gameRunning = true;
+
+        // These hold the events and events fired throughout the lifetime of the game
         private List<Event> events;
         private List<Event> eventsFired;
+
+        // If there is an empty string (no current input), then we need to render a space
+        // so the cursor doesn't move backward
         private bool emptyString = false;
+
+        // First time in game, render the cmd prompt
+        private bool initialRender = true;
 
 
         /// <summary>
@@ -51,8 +69,6 @@ namespace GameLoop
             this.eventsFired = new List<Event>();
             Console.WriteLine("GameLoop Demo Initializing...");
 
-            // TODO: Move this to render
-            Console.Write("[cmd:] ");
 
         }
 
@@ -128,7 +144,6 @@ namespace GameLoop
 
                     }
                     this.tempInput = "";
-                    // Do some stuff here
                 }
                 else
                 {
@@ -185,7 +200,7 @@ namespace GameLoop
                 for (int i = 0; i < this.eventsFired.Count; i++)
                 {
                     firedEvents++;
-                    Console.WriteLine("\tEvent: " + this.eventsFired[i].name + "(" + this.eventsFired[i].times + "remaining)");
+                    Console.WriteLine("\tEvent: " + this.eventsFired[i].name + " (" + this.eventsFired[i].times + "remaining)");
                 }
             }
             if (firedEvents > 0)
@@ -212,6 +227,11 @@ namespace GameLoop
                 this.emptyString = false;
                 Console.Write(" ");
 
+            }
+            if (this.initialRender) 
+            {
+                Console.Write("[cmd:] ");
+                this.initialRender = false;
             }
 
 
