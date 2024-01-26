@@ -6,21 +6,20 @@ namespace GameLoop
 {
     public class MyGame
     {
-
+        // Game data, including Event class
         private DateTime prevTime;
         private ConsoleKeyInfo consoleKey;
         private bool keyPressed = false;
         private bool enterPressed = false;
         private string tempInput = string.Empty;
-
         private bool gameRunning = true;
-
         private List<Event> events;
         private List<Event> eventsFired;
-        private List<string> currentInput;
+        private bool emptyString = false;
+
 
         /// <summary>
-        /// Internal object for events
+        ///     Internal object for events
         /// </summary>
         private class Event
         {
@@ -29,8 +28,8 @@ namespace GameLoop
             public string name;
             public int times;
 
-            public Event(TimeSpan interval, string name, int times) 
-            { 
+            public Event(TimeSpan interval, string name, int times)
+            {
                 this.interval = interval;
                 this.name = name;
                 this.times = times;
@@ -50,7 +49,6 @@ namespace GameLoop
             this.prevTime = DateTime.Now;
             this.events = new List<Event>();
             this.eventsFired = new List<Event>();
-            this.currentInput = new List<string>();
             Console.WriteLine("GameLoop Demo Initializing...");
 
             // TODO: Move this to render
@@ -65,7 +63,7 @@ namespace GameLoop
         {
 
             while (gameRunning)
-            { 
+            {
                 TimeSpan elapsedTime = DateTime.Now - prevTime;
 
                 this.prevTime = DateTime.Now;
@@ -82,20 +80,17 @@ namespace GameLoop
             {
                 var key = Console.ReadKey();
 
-
                 if (key.Key == ConsoleKey.Backspace)
                 {
-                    //tempInput = tempInput.Trim();
                     if (this.tempInput.Length > 0)
                     {
                         this.tempInput = this.tempInput.Remove(this.tempInput.Length - 1);
                         this.keyPressed = true;
                         this.consoleKey = key;
                     }
-                    // TODO: Move this to the render method
                     else
                     {
-                        Console.Write(" ");
+                        this.emptyString = true;
                     }
 
                 }
@@ -104,6 +99,11 @@ namespace GameLoop
                     this.enterPressed = true;
 
                     string[] input = this.tempInput.Split(" ");
+
+                    if (input[0].ToLower() == "quit")
+                    {
+                        this.gameRunning = false;
+                    }
 
                     if (input.Length >= 5)
                     {
@@ -136,90 +136,6 @@ namespace GameLoop
 
                 }
             }
-
-            /*if (Console.KeyAvailable) 
-            { 
-                var key = Console.ReadKey();
-
-                if (key.KeyChar.ToString() == " ")
-                {
-                    this.currentInput.Add("");
-                }
-                else if (key.Key == ConsoleKey.Backspace)
-                {
-                    if (this.currentInput.Count > 0)
-                    {
-                        if (this.currentInput[this.currentInput.Count - 1].Length == 0)
-                        {
-                            // Remove the spot in the list
-                            this.currentInput.RemoveAt(this.currentInput.Count - 1);
-                        }
-                        else if (this.currentInput[this.currentInput.Count - 1].Length > 0)
-                        {
-                            string tempInput = this.currentInput[this.currentInput.Count - 1];
-
-                            tempInput = tempInput.Remove(tempInput.Length - 1);
-
-                            this.currentInput[this.currentInput.Count - 1] = tempInput;
-
-                            if (tempInput == "")
-                            {
-                                this.currentInput.RemoveAt(this.currentInput.Count - 1);
-                                //Console.Write(" ");
-
-                            }
-
-
-                        }
-
-                        this.consoleKey = key;
-                        this.keyPressed = true;
-
-                    }
-                    else
-                    {
-                        Console.Write(" ");
-                    }
-                    Console.Write("");
-                    
-                }
-                else if (key.Key == ConsoleKey.Enter)
-                {
-                    this.enterPressed = true;
-                    if (this.currentInput.Count >= 5) 
-                    {
-                        if (this.currentInput[0].ToLower() == "create" && this.currentInput[1].ToLower() == "event")
-                        {
-                            try {
-                                string name = this.currentInput[2];
-
-                                double timeSpan = double.Parse(this.currentInput[3]);
-
-                                int times = int.Parse(this.currentInput[4]);
-
-                                TimeSpan interval = TimeSpan.FromMilliseconds(timeSpan);
-
-                                this.events.Add(new Event(interval, name, times));
-                            } 
-                            
-                            catch { }
-                        }
-                    }
-                    this.currentInput.Clear();
-                }
-                else
-                {
-                    if (this.currentInput.Count == 0)
-                    {
-                        this.currentInput.Add("");
-                    }
-                    this.currentInput[this.currentInput.Count - 1] += key.KeyChar.ToString();
-                }
-
-            }*/
-
-
-
         }
 
         /// <summary>
@@ -228,7 +144,10 @@ namespace GameLoop
         protected void update(TimeSpan elapsedTime)
         {
 
-            for(int i = 0; i < this.events.Count; i++) 
+
+            this.eventsFired.Clear();
+
+            for (int i = 0; i < this.events.Count; i++)
             {
                 this.events[i].timeToInterval -= elapsedTime;
 
@@ -238,15 +157,20 @@ namespace GameLoop
                     this.events[i].times -= 1;
                     eventsFired.Add(this.events[i]);
 
-                    if (this.events[i].times <= 0)
-                    {
-                        this.events.RemoveAt(i);
-                        i--;
-                    }
+
 
 
                 }
             }
+
+            this.events.RemoveAll(IsExpired);
+
+
+        }
+
+        private bool IsExpired(Event e)
+        {
+            return e.times <= 0;
         }
 
         /// <summary>
@@ -261,30 +185,17 @@ namespace GameLoop
                 for (int i = 0; i < this.eventsFired.Count; i++)
                 {
                     firedEvents++;
-                    Console.WriteLine("\tEvent: "+ this.eventsFired[i].name + "("+ this.eventsFired[i].times + "remaining)");
+                    Console.WriteLine("\tEvent: " + this.eventsFired[i].name + "(" + this.eventsFired[i].times + "remaining)");
                 }
             }
-            if (firedEvents > 0) 
+            if (firedEvents > 0)
             {
-                this.eventsFired.Clear();
-                // Reprint the command line
+                // Reprint the command line and current user input
                 Console.Write("[cmd:] ");
-
-                /*for (int i = 0;i < this.currentInput.Count; i++)
-                {
-                    Console.Write(this.currentInput[i]);
-                    if (i != this.currentInput.Count - 1)
-                    {
-                        Console.Write(" ");
-
-                    }
-
-                }*/
                 Console.Write(this.tempInput);
-                //Console.Write();
             }
 
-            if (this.keyPressed) 
+            if (this.keyPressed)
             {
                 Console.Write(" ");
                 Console.Write(consoleKey.KeyChar.ToString());
@@ -293,8 +204,14 @@ namespace GameLoop
             if (this.enterPressed)
             {
                 this.enterPressed = false;
-                Console.WriteLine() ;
+                Console.WriteLine();
                 Console.Write("[cmd:] ");
+            }
+            if (this.emptyString)
+            {
+                this.emptyString = false;
+                Console.Write(" ");
+
             }
 
 
@@ -308,7 +225,7 @@ namespace GameLoop
             return false;
         }
 
-        
+
 
     }
 }
